@@ -3,9 +3,19 @@ import { NextResponse } from 'next/server';
 import vision from '@google-cloud/vision';
 
 // Initialize Google Cloud Vision client
-const client = new vision.ImageAnnotatorClient({
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
-});
+const client = new vision.ImageAnnotatorClient(
+    process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY
+        ? {
+            credentials: {
+                client_email: process.env.GOOGLE_CLIENT_EMAIL,
+                private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            },
+            projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+        }
+        : {
+            keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+        }
+);
 
 export async function POST(request: Request) {
     try {
