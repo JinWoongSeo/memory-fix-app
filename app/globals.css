@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --font-inter: var(--font-inter);
+  --font-noto-serif: var(--font-noto-serif);
+}
+
+:root {
+  --background: #fafafa;
+  --foreground: #171717;
+  --bg-pattern: #e5e5e5;
+}
+
+.dark {
+  --background: #121212;
+  --foreground: #f0f0f0;
+  --bg-pattern: #1e1e1e;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), sans-serif;
+  background-image: radial-gradient(var(--bg-pattern) 1px, transparent 1px);
+  background-size: 24px 24px;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Premium Memorial Soft Glow Filter */
+.custom-memorial-filter {
+  filter: brightness(1.08) contrast(1.02) saturate(0.85) sepia(0.05) blur(0.4px);
+  transition: all 0.5s ease;
+}
+
+.soft-glow-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.soft-glow-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2) 0%, transparent 80%);
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
