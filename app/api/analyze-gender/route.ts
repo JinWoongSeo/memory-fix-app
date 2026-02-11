@@ -92,7 +92,8 @@ export async function POST(request: Request) {
         return NextResponse.json({
             gender: 'female', // Safe fallback
             confidence: 0.0,
-            error: String(error)
-        }, { status: 500 });
+            error: String(error),
+            fallback: true
+        }, { status: 200 });
     }
 }
