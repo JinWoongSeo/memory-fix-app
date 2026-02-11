@@ -8,14 +8,14 @@ import { useSettings } from '@/context/SettingsContext';
 
 type ProcessingStep = 'upload' | 'analyzing' | 'clothing' | 'finalizing' | 'completed';
 type Gender = 'male' | 'female';
-type Clothing = 'suit' | 'hanbok';
+type TransformationType = 'suit' | 'hanbok';
 
 export default function ConvertPage() {
     const { format: saveFormat, quality, t } = useSettings();
     const [step, setStep] = useState<ProcessingStep>('upload');
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
     const [detectedGender, setDetectedGender] = useState<Gender>('female'); // Default simulated detection
-    const [selectedClothing, setSelectedClothing] = useState<Clothing | null>(null);
+    const [selectedTransformation, setSelectedTransformation] = useState<TransformationType | null>(null);
 
     const handlePhotoSelected = async (file: File) => {
         const objectUrl = URL.createObjectURL(file);
@@ -60,8 +60,8 @@ export default function ConvertPage() {
         }
     };
 
-    const handleClothingSelect = async (clothing: Clothing) => {
-        setSelectedClothing(clothing);
+    const handleTransformationSelect = async (type: TransformationType) => {
+        setSelectedTransformation(type);
         setStep('finalizing');
 
         try {
@@ -71,32 +71,45 @@ export default function ConvertPage() {
             const reader = new FileReader();
 
             reader.onloadend = async () => {
-                const base64data = reader.result;
+                const base64data = (reader.result as string).split(',')[1]; // Remove data URL prefix for Colab
 
                 try {
-                    // Call our new API route
-                    const apiResponse = await fetch('/api/restore', {
+                    let resultUrl = '';
+
+                    // Call the new Try-On API
+                    console.log('Calling Try-On API for:', type);
+                    const apiResponse = await fetch('/api/try-on', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            imageUrl: base64data,
-                            clothing: clothing,
-                            quality: quality // Include quality setting
+                            personImage: reader.result, // Send full Base64 Data URL
+                            garmentType: type
                         }),
                     });
 
                     if (apiResponse.ok) {
                         const data = await apiResponse.json();
-                        // If we got a real result URL from Replicate
-                        if (data.result && data.result.startsWith('http')) {
-                            setUploadedImage(data.result);
+                        if (data.result) {
+                            // Result might be a URL or base64. 
+                            // Gradio client usually returns a URL to a temp file on HF spaces.
+                            resultUrl = data.result;
                         }
+                    } else {
+                        console.error('Try-On API Error:', apiResponse.statusText);
                     }
+
+                    if (resultUrl) {
+                        setUploadedImage(resultUrl);
+                    } else {
+                        // Fallback to mock behavior if API fails or returns nothing (for testing)
+                        console.log('API returned no result, using fallback (or error)');
+                    }
+
                 } catch (e) {
                     console.error("API Call failed", e);
                 }
 
-                // Always move to completion even if API fails (fallback to original simulation)
+                // Always move to completion
                 setStep('completed');
             };
 
@@ -120,7 +133,7 @@ export default function ConvertPage() {
 
             // Generate filename with timestamp
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            const clothingType = selectedClothing === 'hanbok' ? t.convert.hanbok : t.convert.suit;
+            const clothingType = selectedTransformation || 'restored';
             link.download = `${t.common.appName}_${clothingType}_${timestamp}.${saveFormat}`;
 
             // Trigger download
@@ -181,14 +194,14 @@ export default function ConvertPage() {
                     <div className="space-y-4">
                         <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest text-center">{t.convert.selectClothing}</h4>
                         <div className="grid grid-cols-2 gap-4">
-                            {(['suit', 'hanbok'] as Clothing[]).map((type) => (
+                            {(['suit', 'hanbok'] as TransformationType[]).map((type) => (
                                 <button
                                     key={type}
-                                    onClick={() => handleClothingSelect(type)}
+                                    onClick={() => handleTransformationSelect(type)}
                                     className="flex flex-col items-center gap-3 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm hover:border-zinc-900 dark:hover:border-zinc-100 hover:shadow-md transition-all group"
                                 >
                                     <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-xl text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
-                                        <Shirt size={24} />
+                                        {(type === 'suit' || type === 'hanbok') && <Shirt size={24} />}
                                     </div>
                                     <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100">{t.convert[type]}</span>
                                 </button>
@@ -208,7 +221,7 @@ export default function ConvertPage() {
                     <div className="text-center space-y-2">
                         <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-100">{t.convert.processing}</h3>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 px-8 break-keep leading-relaxed">
-                            {t.convert.processingDesc}
+                            {t.convert.processingDesc} (Free AI: ~30s)
                         </p>
                     </div>
                 </div>

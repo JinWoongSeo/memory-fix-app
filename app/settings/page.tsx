@@ -69,67 +69,68 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </div>
-                </section>
 
-                {/* Display & Interface */}
-                <section className="space-y-3">
-                    <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider px-1">{t.settings.displaySection}</h2>
-                    <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
 
-                        <div className="flex items-center justify-between p-4 border-b border-zinc-50 dark:border-zinc-800">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400">
-                                    <Globe size={18} />
+
+                    {/* Display & Interface */}
+                    <section className="space-y-3">
+                        <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider px-1">{t.settings.displaySection}</h2>
+                        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
+
+                            <div className="flex items-center justify-between p-4 border-b border-zinc-50 dark:border-zinc-800">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400">
+                                        <Globe size={18} />
+                                    </div>
+                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.settings.language}</div>
                                 </div>
-                                <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.settings.language}</div>
+                                <button
+                                    onClick={toggleLanguage}
+                                    className="flex items-center gap-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                                >
+                                    <span>{language === 'ko' ? '한국어' : 'English'}</span>
+                                    <ChevronRight size={14} className="text-zinc-300" />
+                                </button>
                             </div>
-                            <button
-                                onClick={toggleLanguage}
-                                className="flex items-center gap-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                            >
-                                <span>{language === 'ko' ? '한국어' : 'English'}</span>
-                                <ChevronRight size={14} className="text-zinc-300" />
-                            </button>
-                        </div>
 
-                        <div className="flex items-center justify-between p-4">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400">
-                                    <Moon size={18} />
+                            <div className="flex items-center justify-between p-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400">
+                                        <Moon size={18} />
+                                    </div>
+                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.settings.darkMode}</div>
                                 </div>
-                                <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.settings.darkMode}</div>
+                                <button
+                                    onClick={() => setDarkMode(!darkMode)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${darkMode ? 'bg-zinc-800 border border-zinc-700' : 'bg-zinc-200'}`}
+                                >
+                                    <span className={`${darkMode ? 'translate-x-6 bg-white' : 'translate-x-1 bg-white shadow-sm'} inline-block h-4 w-4 transform rounded-full transition-transform duration-300`} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setDarkMode(!darkMode)}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${darkMode ? 'bg-zinc-800 border border-zinc-700' : 'bg-zinc-200'}`}
-                            >
-                                <span className={`${darkMode ? 'translate-x-6 bg-white' : 'translate-x-1 bg-white shadow-sm'} inline-block h-4 w-4 transform rounded-full transition-transform duration-300`} />
-                            </button>
                         </div>
+                    </section>
+
+                    {/* Information */}
+                    <section className="space-y-3">
+                        <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider px-1">{t.settings.infoSection}</h2>
+                        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
+                            <div className="w-full flex items-center justify-between p-4 bg-zinc-50/10 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400">
+                                        <Monitor size={18} />
+                                    </div>
+                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.settings.version}</div>
+                                </div>
+                                <span className="text-xs font-mono text-zinc-400">v1.0.0</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div className="py-8 text-center">
+                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-relaxed italic opacity-80">
+                            {t.settings.quote}
+                        </p>
                     </div>
-                </section>
-
-                {/* Information */}
-                <section className="space-y-3">
-                    <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider px-1">{t.settings.infoSection}</h2>
-                    <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
-                        <div className="w-full flex items-center justify-between p-4 bg-zinc-50/10 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400">
-                                    <Monitor size={18} />
-                                </div>
-                                <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t.settings.version}</div>
-                            </div>
-                            <span className="text-xs font-mono text-zinc-400">v1.0.0</span>
-                        </div>
-                    </div>
-                </section>
-
-                <div className="py-8 text-center">
-                    <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-relaxed italic opacity-80">
-                        {t.settings.quote}
-                    </p>
-                </div>
             </div>
         </div>
     );

@@ -29,12 +29,8 @@ export async function POST(request: Request) {
         const base64Data = imageUrl.split(',')[1];
         const mimeType = imageUrl.split(';')[0].split(':')[1];
 
-        // Prepare the model
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            generationConfig: {
-                responseMimeType: "application/json"
-            }
+            model: "gemini-2.0-flash-001"
         });
 
         // Prompt for analysis
@@ -89,10 +85,11 @@ export async function POST(request: Request) {
 
     } catch (error) {
         console.error("Gemini Analysis Error:", error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
         return NextResponse.json({
             gender: 'female', // Safe fallback
             confidence: 0.0,
-            error: String(error),
+            error: errorMessage,
             fallback: true
         }, { status: 200 });
     }

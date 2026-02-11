@@ -18,6 +18,13 @@ const notoserif = Noto_Serif_KR({
 export const metadata: Metadata = {
   title: "메모리픽스 - 영원한 기억",
   description: "소중한 사진을 고품질 영정사진으로 간직하세요.",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
 };
 
 import BottomNavigation from "@/components/BottomNavigation";
