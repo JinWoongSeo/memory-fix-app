@@ -1,86 +1,98 @@
 
 import { NextResponse } from 'next/server';
-import vision from '@google-cloud/vision';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Google Cloud Vision client
-const client = new vision.ImageAnnotatorClient(
-    process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY
-        ? {
-            credentials: {
-                client_email: process.env.GOOGLE_CLIENT_EMAIL,
-                private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-            },
-            projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-        }
-        : {
-            keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
-        }
-);
+// Initialize Google Gemini Client
+const apiKey = process.env.GOOGLE_AI_API_KEY;
+const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 export async function POST(request: Request) {
     try {
+        if (!genAI) {
+            console.error("❌ Stats: GOOGLE_AI_API_KEY is missing");
+            return NextResponse.json({
+                error: "Server configuration error",
+                message: "GOOGLE_AI_API_KEY is missing"
+            }, { status: 500 });
+        }
+
         const { imageUrl } = await request.json();
 
         if (!imageUrl) {
             return NextResponse.json({ error: 'Image URL is missing' }, { status: 400 });
         }
 
-        console.log('👤 Analyzing gender with Google Cloud Vision...');
+        console.log('🤖 Analyzing gender with Google Gemini 1.5 Flash...');
 
-        // Convert data URI to buffer
-        const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, "");
-        const imageBuffer = Buffer.from(base64Data, 'base64');
+        // Convert base64 data URI to proper format for Gemini
+        // imageUrl format: "data:image/jpeg;base64,/9j/4AAQSw..."
+        const base64Data = imageUrl.split(',')[1];
+        const mimeType = imageUrl.split(';')[0].split(':')[1];
 
-        // Perform face detection
-        const [result] = await client.faceDetection({
-            image: { content: imageBuffer }
+        // Prepare the model
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            generationConfig: {
+                responseMimeType: "application/json"
+            }
         });
 
-        const faces = result.faceAnnotations;
+        // Prompt for analysis
+        const prompt = `
+            Analyze the person in this image.
+            Determine their gender based on visual features.
+            Return a JSON object with the following structure:
+            {
+                "gender": "male" or "female",
+                "confidence": number between 0.0 and 1.0,
+                "reasoning": "brief explanation of visual cues"
+            }
+            If unsure or multiple people, pick the most prominent person.
+        `;
 
-        if (!faces || faces.length === 0) {
-            console.log('⚠️ No faces detected in image');
-            return NextResponse.json({
-                gender: 'female',
-                confidence: 'low',
-                message: 'No faces detected'
-            });
+        const imagePart = {
+            inlineData: {
+                data: base64Data,
+                mimeType: mimeType
+            }
+        };
+
+        const result = await model.generateContent([prompt, imagePart]);
+        const response = await result.response;
+        const text = response.text();
+
+        console.log('✅ Gemini Analysis Result:', text);
+
+        let analysis;
+        try {
+            analysis = JSON.parse(text);
+        } catch (e) {
+            console.error("Failed to parse Gemini response:", text);
+            // Fallback parsing if JSON is malformed
+            const isMale = text.toLowerCase().includes("male") && !text.toLowerCase().includes("female");
+            analysis = {
+                gender: isMale ? 'male' : 'female',
+                confidence: 0.8,
+                reasoning: "Fallback parsing"
+            };
         }
 
-        // Get the first (primary) face
-        const primaryFace = faces[0];
-
-        // Google Vision doesn't directly provide gender, but we can use facial features
-        // We'll use a heuristic based on facial features like joy, sorrow likelihood
-        // For a more accurate gender detection, we would need additional ML models
-
-        // Fallback: Use facial feature analysis
-        // Note: This is a simplified approach. For production, consider using
-        // a dedicated gender classification model or service
-
-        console.log('Face detection confidence:', primaryFace.detectionConfidence);
-
-        // For now, we'll use a random approach with face detection confirmation
-        // In production, you'd integrate a proper gender classification model
-        const detectedGender: 'male' | 'female' = Math.random() > 0.5 ? 'male' : 'female';
-
-        console.log('✅ Face detected, gender:', detectedGender);
+        // Normalize gender string
+        const detectedGender = analysis.gender.toLowerCase().includes('female') ? 'female' : 'male';
 
         return NextResponse.json({
             gender: detectedGender,
-            confidence: 'medium',
-            faceDetected: true,
-            detectionConfidence: primaryFace.detectionConfidence
+            confidence: analysis.confidence || 0.9,
+            reasoning: analysis.reasoning,
+            raw: text
         });
 
     } catch (error) {
-        console.error("Google Cloud Vision Error:", error);
-
-        // Fallback to female on error
+        console.error("Gemini Analysis Error:", error);
         return NextResponse.json({
-            gender: 'female',
-            confidence: 'low',
+            gender: 'female', // Safe fallback
+            confidence: 0.0,
             error: String(error)
-        });
+        }, { status: 500 });
     }
 }
