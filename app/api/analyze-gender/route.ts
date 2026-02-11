@@ -73,7 +73,7 @@ export async function POST(request: Request) {
             detectionConfidence: primaryFace.detectionConfidence
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error("Google Cloud Vision Error:", error);
 
         // Fallback to female on error

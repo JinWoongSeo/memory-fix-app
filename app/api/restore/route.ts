@@ -47,7 +47,7 @@ export async function POST(request: Request) {
             error: "Real mode not implemented yet. Use Replicate for production."
         }, { status: 501 });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error("API Error:", error);
         return NextResponse.json({
             error: "Failed to process image",

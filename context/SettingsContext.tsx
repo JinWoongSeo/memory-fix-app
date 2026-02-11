@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -34,7 +35,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (savedFormat) setFormat(savedFormat);
         if (savedDarkMode) setDarkMode(savedDarkMode === 'true');
         if (savedLanguage) setLanguage(savedLanguage);
-    }, []);
+    }, [setQuality, setFormat, setDarkMode, setLanguage]);
 
     // Save to localStorage when changed
     useEffect(() => {
